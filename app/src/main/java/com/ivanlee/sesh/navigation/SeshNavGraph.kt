@@ -9,6 +9,8 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import com.ivanlee.sesh.ui.screen.analytics.AnalyticsScreen
+import com.ivanlee.sesh.ui.screen.history.HistoryScreen
 import com.ivanlee.sesh.ui.screen.timer.TimerScreen
 
 @Composable
@@ -25,23 +27,18 @@ fun SeshNavGraph(
             TimerScreen()
         }
         composable(Screen.Analytics.route) {
-            PlaceholderScreen("Analytics")
+            AnalyticsScreen()
         }
         composable(Screen.History.route) {
-            PlaceholderScreen("History")
+            HistoryScreen()
         }
         composable(Screen.Settings.route) {
-            PlaceholderScreen("Settings")
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(text = "Settings — Coming Soon")
+            }
         }
-    }
-}
-
-@Composable
-private fun PlaceholderScreen(title: String) {
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        Text(text = "$title — Coming Soon")
     }
 }
