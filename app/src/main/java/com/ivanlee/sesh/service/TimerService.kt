@@ -7,6 +7,7 @@ import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.os.Binder
+import android.os.Build
 import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
@@ -20,6 +21,13 @@ import com.ivanlee.sesh.data.repository.SessionRepository
 import com.ivanlee.sesh.domain.model.BreakType
 import com.ivanlee.sesh.domain.model.TimerPhase
 import com.ivanlee.sesh.domain.model.TimerState
+import androidx.work.BackoffPolicy
+import androidx.work.Constraints
+import androidx.work.NetworkType
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
+import androidx.work.workDataOf
+import com.ivanlee.sesh.data.calendar.CalendarSyncWorker
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -200,6 +208,18 @@ class TimerService : Service() {
             repository.saveSession(session)
         }
 
+        // Enqueue calendar sync (worker checks if enabled before syncing)
+        val syncRequest = OneTimeWorkRequestBuilder<CalendarSyncWorker>()
+            .setInputData(workDataOf("session_id" to session.id))
+            .setConstraints(
+                Constraints.Builder()
+                    .setRequiredNetworkType(NetworkType.CONNECTED)
+                    .build()
+            )
+            .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 30, java.util.concurrent.TimeUnit.SECONDS)
+            .build()
+        WorkManager.getInstance(this).enqueue(syncRequest)
+
         _timerState.value = TimerState()
         stopForeground(STOP_FOREGROUND_REMOVE)
         stopSelf()
@@ -364,11 +384,20 @@ class TimerService : Service() {
             this, 0, intent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
-        alarmManager.setExactAndAllowWhileIdle(
-            AlarmManager.ELAPSED_REALTIME_WAKEUP,
-            SystemClock.elapsedRealtime() + delayMs,
-            pendingIntent
-        )
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S || alarmManager.canScheduleExactAlarms()) {
+            alarmManager.setExactAndAllowWhileIdle(
+                AlarmManager.ELAPSED_REALTIME_WAKEUP,
+                SystemClock.elapsedRealtime() + delayMs,
+                pendingIntent
+            )
+        } else {
+            // Fall back to inexact alarm when exact alarm permission is not granted
+            alarmManager.set(
+                AlarmManager.ELAPSED_REALTIME_WAKEUP,
+                SystemClock.elapsedRealtime() + delayMs,
+                pendingIntent
+            )
+        }
     }
 
     private fun cancelAlarm() {
@@ -441,16 +470,27 @@ class TimerService : Service() {
             else -> "Timer Complete!"
         }
 
-        val notification = NotificationCompat.Builder(this, SeshApplication.ALERTS_CHANNEL_ID)
+        val builder = NotificationCompat.Builder(this, SeshApplication.ALERTS_CHANNEL_ID)
             .setContentTitle(title)
             .setContentText(state.intention.ifEmpty { "Your session is done" })
             .setSmallIcon(android.R.drawable.ic_dialog_info)
             .setAutoCancel(true)
             .setVibrate(longArrayOf(0, 300, 200, 300))
-            .build()
+
+        // Add context-appropriate action buttons
+        when {
+            state.phase == TimerPhase.Overflow || state.phase == TimerPhase.Focus -> {
+                builder.addAction(0, "Start Break", createActionIntent(ACTION_START_BREAK))
+                builder.addAction(0, "Dismiss", createActionIntent(ACTION_FINISH))
+            }
+            state.phase == TimerPhase.BreakOverflow || state.phase == TimerPhase.Break -> {
+                builder.addAction(0, "Start Focus", createActionIntent(ACTION_START_FOCUS))
+                builder.addAction(0, "Dismiss", createActionIntent(ACTION_FINISH_BREAK))
+            }
+        }
 
         val manager = getSystemService(Context.NOTIFICATION_SERVICE) as android.app.NotificationManager
-        manager.notify(COMPLETION_NOTIFICATION_ID, notification)
+        manager.notify(COMPLETION_NOTIFICATION_ID, builder.build())
     }
 
     private fun createActionIntent(action: String): PendingIntent {

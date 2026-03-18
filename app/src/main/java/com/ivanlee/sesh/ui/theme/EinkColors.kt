@@ -10,7 +10,7 @@ object EinkColors {
 
     // Phase colors
     val Focus = Color(0xFF2E7D32)
-    val Overflow = Color(0xFFE65100)
+    val Overflow = Color(0xFFFFA000)
     val Break = Color(0xFF1565C0)
     val Paused = Color(0xFF6A1B9A)
     val Abandoned = Color(0xFFC62828)

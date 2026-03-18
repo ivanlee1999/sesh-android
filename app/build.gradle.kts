@@ -20,6 +20,7 @@ android {
         vectorDrawables {
             useSupportLibrary = true
         }
+        manifestPlaceholders["appAuthRedirectScheme"] = "com.ivanlee.sesh"
     }
 
     buildTypes {
@@ -94,4 +95,14 @@ dependencies {
 
     // Coroutines
     implementation(libs.kotlinx.coroutines.android)
+
+    // AppAuth (Google OAuth)
+    implementation(libs.appauth)
+
+    // WorkManager
+    implementation(libs.work.runtime.ktx)
+
+    // Hilt WorkManager integration
+    implementation(libs.hilt.work)
+    ksp(libs.hilt.work.compiler)
 }
