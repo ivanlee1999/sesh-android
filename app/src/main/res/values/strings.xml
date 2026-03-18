@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Sesh</string>
+    <string name="timer_notification_channel">Timer</string>
+    <string name="alerts_notification_channel">Alerts</string>
+</resources>
