@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -15,9 +16,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.ivanlee.sesh.domain.model.TimerPhase
 import com.ivanlee.sesh.domain.model.TimerState
+import com.ivanlee.sesh.ui.components.CircularTimer
 import com.ivanlee.sesh.ui.components.EinkButton
-import com.ivanlee.sesh.ui.components.EinkProgressBar
-import com.ivanlee.sesh.ui.components.EinkTimerDisplay
 import com.ivanlee.sesh.ui.components.phaseColor
 import com.ivanlee.sesh.ui.theme.EinkColors
 
@@ -45,9 +45,10 @@ fun ActiveTimerContent(
 
     Column(
         modifier = modifier
-            .fillMaxWidth()
+            .fillMaxSize()
             .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
     ) {
         // Phase label
         Text(
@@ -56,7 +57,17 @@ fun ActiveTimerContent(
             color = color
         )
 
-        Spacer(modifier = Modifier.height(4.dp))
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Circular timer
+        CircularTimer(
+            timeMs = state.displayTimeMs,
+            phase = state.phase,
+            progress = state.progress,
+            isOverflow = state.isOverflow
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
 
         // Intention
         if (state.intention.isNotEmpty()) {
@@ -74,24 +85,6 @@ fun ActiveTimerContent(
                 color = EinkColors.Disabled
             )
         }
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        // Timer display
-        EinkTimerDisplay(
-            timeMs = state.displayTimeMs,
-            phase = state.phase,
-            isOverflow = state.isOverflow
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Progress bar
-        EinkProgressBar(
-            progress = state.progress,
-            color = color,
-            isOverflow = state.isOverflow
-        )
 
         Spacer(modifier = Modifier.height(24.dp))
 

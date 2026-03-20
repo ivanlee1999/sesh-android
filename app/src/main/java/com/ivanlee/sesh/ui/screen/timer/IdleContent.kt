@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -29,9 +30,9 @@ import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.unit.dp
 import com.ivanlee.sesh.data.db.entity.CategoryEntity
 import com.ivanlee.sesh.domain.model.BreakType
-import com.ivanlee.sesh.ui.components.EinkButton
-import com.ivanlee.sesh.ui.components.EinkTimerDisplay
 import com.ivanlee.sesh.domain.model.TimerPhase
+import com.ivanlee.sesh.ui.components.CircularTimer
+import com.ivanlee.sesh.ui.components.EinkButton
 import com.ivanlee.sesh.ui.theme.EinkColors
 
 @Composable
@@ -51,10 +52,57 @@ fun IdleContent(
 ) {
     Column(
         modifier = modifier
-            .fillMaxWidth()
+            .fillMaxSize()
             .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
     ) {
+        // Circular timer showing target duration (static, progress=0)
+        CircularTimer(
+            timeMs = targetMinutes * 60 * 1000L,
+            phase = TimerPhase.Focus,
+            progress = 0f,
+            isOverflow = false
+        )
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        // Duration adjust buttons
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.Center
+        ) {
+            EinkButton(
+                text = "-5",
+                onClick = { onAdjustDuration(-5) },
+                modifier = Modifier.width(64.dp),
+                filled = false
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            EinkButton(
+                text = "-1",
+                onClick = { onAdjustDuration(-1) },
+                modifier = Modifier.width(64.dp),
+                filled = false
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            EinkButton(
+                text = "+1",
+                onClick = { onAdjustDuration(1) },
+                modifier = Modifier.width(64.dp),
+                filled = false
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            EinkButton(
+                text = "+5",
+                onClick = { onAdjustDuration(5) },
+                modifier = Modifier.width(64.dp),
+                filled = false
+            )
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
         // Intention text field
         TextField(
             value = intention,
@@ -117,55 +165,13 @@ fun IdleContent(
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // Timer display
-        EinkTimerDisplay(
-            timeMs = targetMinutes * 60 * 1000L,
-            phase = TimerPhase.Idle,
-            isOverflow = false
-        )
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        // Duration adjust buttons
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.Center
-        ) {
-            EinkButton(
-                text = "-5",
-                onClick = { onAdjustDuration(-5) },
-                modifier = Modifier.width(64.dp),
-                filled = false
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-            EinkButton(
-                text = "-1",
-                onClick = { onAdjustDuration(-1) },
-                modifier = Modifier.width(64.dp),
-                filled = false
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-            EinkButton(
-                text = "+1",
-                onClick = { onAdjustDuration(1) },
-                modifier = Modifier.width(64.dp),
-                filled = false
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-            EinkButton(
-                text = "+5",
-                onClick = { onAdjustDuration(5) },
-                modifier = Modifier.width(64.dp),
-                filled = false
-            )
-        }
-
-        Spacer(modifier = Modifier.height(24.dp))
-
         // Start focus button
         EinkButton(
             text = "START FOCUS",
-            onClick = onStartFocus
+            onClick = onStartFocus,
+            modifier = Modifier.fillMaxWidth(),
+            backgroundColor = EinkColors.Focus,
+            contentColor = EinkColors.Background
         )
 
         Spacer(modifier = Modifier.height(12.dp))
@@ -192,17 +198,13 @@ fun IdleContent(
         Spacer(modifier = Modifier.height(24.dp))
 
         // Today stats
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            val hours = (todayMinutes / 60).toInt()
-            val mins = (todayMinutes % 60).toInt()
-            val timeStr = if (hours > 0) "${hours}h${mins}m" else "${mins}m"
-            Text(
-                text = "Today: $timeStr  $todaySessionCount sessions",
-                style = MaterialTheme.typography.bodyMedium
-            )
-        }
+        val hours = (todayMinutes / 60).toInt()
+        val mins = (todayMinutes % 60).toInt()
+        val timeStr = if (hours > 0) "${hours}h${mins}m" else "${mins}m"
+        Text(
+            text = "Today: $timeStr  $todaySessionCount sessions",
+            style = MaterialTheme.typography.bodyMedium,
+            color = EinkColors.Disabled
+        )
     }
 }
