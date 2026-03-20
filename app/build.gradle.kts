@@ -6,6 +6,18 @@ plugins {
 }
 
 android {
+    signingConfigs {
+        getByName("debug") {
+            val debugKeystoreFile = file("debug.keystore")
+            if (debugKeystoreFile.exists()) {
+                storeFile = debugKeystoreFile
+                storePassword = "android"
+                keyAlias = "androiddebugkey"
+                keyPassword = "android"
+            }
+        }
+    }
+
     namespace = "com.ivanlee.sesh"
     compileSdk = 34
 
