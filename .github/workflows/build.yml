@@ -37,6 +37,9 @@ jobs:
       - name: Lint
         run: ./gradlew lint
 
+      - name: Print debug keystore SHA-1
+        run: keytool -list -v -keystore ~/.android/debug.keystore -alias androiddebugkey -storepass android 2>/dev/null | grep SHA1 || echo "No debug keystore found"
+
       - name: Build Debug APK
         run: ./gradlew assembleDebug
 
