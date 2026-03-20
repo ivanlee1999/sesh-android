@@ -368,14 +368,7 @@ class TimerService : Service() {
         updateNotification()
     }
 
-    private fun calculateTickInterval(): Long {
-        val current = _timerState.value
-        return when {
-            current.phase == TimerPhase.Focus && current.remainingMs <= 60_000 -> 1_000L
-            current.phase == TimerPhase.Break && current.remainingMs <= 60_000 -> 1_000L
-            else -> 15_000L
-        }
-    }
+    private fun calculateTickInterval(): Long = 1_000L
 
     private fun scheduleAlarm(delayMs: Long) {
         val alarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
