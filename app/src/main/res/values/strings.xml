@@ -3,5 +3,5 @@
     <string name="app_name">Sesh</string>
     <string name="timer_notification_channel">Timer</string>
     <string name="alerts_notification_channel">Alerts</string>
-    <string name="google_client_id" translatable="false">YOUR_CLIENT_ID_HERE</string>
+    <string name="google_client_id" translatable="false">390540563016-974e1n5am9n2io1tkcn06aa36rspd5vr.apps.googleusercontent.com</string>
 </resources>
