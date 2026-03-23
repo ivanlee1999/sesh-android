@@ -31,6 +31,7 @@ import androidx.compose.ui.unit.dp
 import com.ivanlee.sesh.data.db.entity.CategoryEntity
 import com.ivanlee.sesh.domain.model.BreakType
 import com.ivanlee.sesh.domain.model.TimerPhase
+import com.ivanlee.sesh.ui.FormatUtils
 import com.ivanlee.sesh.ui.components.CircularTimer
 import com.ivanlee.sesh.ui.components.EinkButton
 import com.ivanlee.sesh.ui.theme.EinkColors
@@ -198,11 +199,10 @@ fun IdleContent(
         Spacer(modifier = Modifier.height(24.dp))
 
         // Today stats
-        val hours = (todayMinutes / 60).toInt()
-        val mins = (todayMinutes % 60).toInt()
-        val timeStr = if (hours > 0) "${hours}h${mins}m" else "${mins}m"
+        val timeStr = FormatUtils.formatDurationMinutes(todayMinutes)
+        val sessionLabel = if (todaySessionCount == 1) "session" else "sessions"
         Text(
-            text = "Today: $timeStr  $todaySessionCount sessions",
+            text = "Today: $timeStr  $todaySessionCount $sessionLabel",
             style = MaterialTheme.typography.bodyMedium,
             color = EinkColors.Disabled
         )

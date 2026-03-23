@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.dp
 import androidx.core.graphics.toColorInt
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.ivanlee.sesh.data.db.dao.SessionWithCategory
+import com.ivanlee.sesh.ui.FormatUtils
 import com.ivanlee.sesh.ui.theme.EinkColors
 import com.ivanlee.sesh.ui.theme.EinkTypography
 
@@ -93,7 +94,7 @@ private fun SessionCard(session: SessionWithCategory) {
     }
 
     val time = formatStartTime(session.startedAt)
-    val duration = formatDuration(session.actualSeconds - session.pauseSeconds)
+    val duration = FormatUtils.formatDurationSeconds(session.actualSeconds - session.pauseSeconds)
     val typeLabel = when (session.sessionType) {
         "full_focus" -> "full"
         "partial_focus" -> "partial"
@@ -176,13 +177,3 @@ private fun formatStartTime(isoDateTime: String): String {
     }
 }
 
-private fun formatDuration(totalSeconds: Long): String {
-    val minutes = totalSeconds / 60
-    return if (minutes >= 60) {
-        val hours = minutes / 60
-        val mins = minutes % 60
-        "${hours}h ${mins}m"
-    } else {
-        "${minutes}m"
-    }
-}

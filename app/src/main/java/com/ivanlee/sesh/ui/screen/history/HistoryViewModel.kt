@@ -9,7 +9,9 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import java.time.Instant
 import java.time.LocalDate
+import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import javax.inject.Inject
 
@@ -33,9 +35,11 @@ class HistoryViewModel @Inject constructor(
         val displayFormat = DateTimeFormatter.ofPattern("EEE, MMM d")
 
         return sessions.groupBy { session ->
-            // Parse the date portion from ISO 8601 started_at
+            // Parse UTC instant and convert to device-local date
             try {
-                LocalDate.parse(session.startedAt.substring(0, 10))
+                Instant.parse(session.startedAt)
+                    .atZone(ZoneId.systemDefault())
+                    .toLocalDate()
             } catch (e: Exception) {
                 today
             }

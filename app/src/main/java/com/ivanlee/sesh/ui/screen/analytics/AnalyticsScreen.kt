@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.dp
 import androidx.core.graphics.toColorInt
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.ivanlee.sesh.data.db.dao.SessionWithCategory
+import com.ivanlee.sesh.ui.FormatUtils
 import com.ivanlee.sesh.ui.components.EinkBarChart
 import com.ivanlee.sesh.ui.theme.EinkColors
 import com.ivanlee.sesh.ui.theme.EinkTypography
@@ -99,7 +100,7 @@ private fun TodayStatsSection(todayMinutes: Double, sessionCount: Int, streak: I
                 color = EinkColors.OnBackground
             )
             Text(
-                text = formatMinutesDisplay(todayMinutes),
+                text = FormatUtils.formatDurationMinutes(todayMinutes),
                 style = EinkTypography.headlineLarge,
                 color = EinkColors.OnBackground
             )
@@ -269,7 +270,8 @@ private fun DailyTimelineSection(sessions: List<SessionWithCategory>) {
     ) {
         sessions.forEach { session ->
             val startTime = formatTimeFromIso(session.startedAt)
-            val durationMinutes = (session.actualSeconds - session.pauseSeconds) / 60
+            val durationSeconds = session.actualSeconds - session.pauseSeconds
+            val durationMinutes = durationSeconds / 60
             val categoryColor = try {
                 Color(session.categoryColor?.toColorInt() ?: 0xFFABB2BF.toInt())
             } catch (e: Exception) {
@@ -315,9 +317,9 @@ private fun DailyTimelineSection(sessions: List<SessionWithCategory>) {
                             color = Color.White,
                             maxLines = 1
                         )
-                        if (durationMinutes > 0) {
+                        if (durationSeconds > 0) {
                             Text(
-                                text = "${durationMinutes}m",
+                                text = FormatUtils.formatDurationSeconds(durationSeconds),
                                 style = EinkTypography.bodyMedium,
                                 color = Color.White
                             )
@@ -344,7 +346,7 @@ private fun AllTimeSection(allTimeMinutes: Double) {
         )
         Spacer(modifier = Modifier.width(8.dp))
         Text(
-            text = formatMinutesDisplay(allTimeMinutes),
+            text = FormatUtils.formatDurationMinutes(allTimeMinutes),
             style = EinkTypography.headlineMedium,
             color = EinkColors.OnBackground
         )
@@ -358,13 +360,6 @@ private fun SectionDivider() {
         thickness = 2.dp,
         color = EinkColors.OnBackground
     )
-}
-
-private fun formatMinutesDisplay(minutes: Double): String {
-    val totalMinutes = minutes.toLong()
-    val hours = totalMinutes / 60
-    val mins = totalMinutes % 60
-    return if (hours > 0) "${hours}h ${mins}m" else "${mins}m"
 }
 
 private fun formatTimeFromIso(isoDateTime: String): String {
