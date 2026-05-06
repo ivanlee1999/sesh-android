@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 import com.ivanlee.sesh.data.db.dao.CategoryDao
 import com.ivanlee.sesh.data.db.dao.SessionDao
@@ -22,7 +23,7 @@ import java.util.UUID
         SessionEntity::class,
         PauseEntity::class
     ],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 abstract class SeshDatabase : RoomDatabase() {
@@ -32,12 +33,19 @@ abstract class SeshDatabase : RoomDatabase() {
     companion object {
         const val DATABASE_NAME = "sesh.db"
 
+        val MIGRATION_1_2 = object : Migration(1, 2) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE sessions ADD COLUMN calendar_event_id TEXT DEFAULT NULL")
+            }
+        }
+
         fun buildDatabase(context: Context): SeshDatabase {
             return Room.databaseBuilder(
                 context.applicationContext,
                 SeshDatabase::class.java,
                 DATABASE_NAME
             )
+                .addMigrations(MIGRATION_1_2)
                 .addCallback(SeedCallback())
                 .build()
         }

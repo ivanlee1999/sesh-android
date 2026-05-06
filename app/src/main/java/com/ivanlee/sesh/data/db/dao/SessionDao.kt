@@ -4,6 +4,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.RawQuery
+import androidx.room.Update
 import androidx.sqlite.db.SupportSQLiteQuery
 import com.ivanlee.sesh.data.db.entity.PauseEntity
 import com.ivanlee.sesh.data.db.entity.SessionEntity
@@ -13,6 +14,9 @@ import kotlinx.coroutines.flow.Flow
 interface SessionDao {
     @Insert
     suspend fun insertSession(session: SessionEntity)
+
+    @Update
+    suspend fun updateSession(session: SessionEntity)
 
     @Insert
     suspend fun insertPause(pause: PauseEntity)
@@ -72,7 +76,7 @@ interface SessionDao {
                COALESCE(c.hex_color, '#ABB2BF') AS category_color,
                s.session_type, s.target_seconds, s.actual_seconds,
                s.pause_seconds, s.overflow_seconds,
-               s.started_at, s.ended_at, s.notes
+               s.started_at, s.ended_at, s.notes, s.calendar_event_id
         FROM sessions s
         LEFT JOIN categories c ON s.category_id = c.id
         ORDER BY s.started_at DESC
@@ -85,7 +89,7 @@ interface SessionDao {
                COALESCE(c.hex_color, '#ABB2BF') AS category_color,
                s.session_type, s.target_seconds, s.actual_seconds,
                s.pause_seconds, s.overflow_seconds,
-               s.started_at, s.ended_at, s.notes
+               s.started_at, s.ended_at, s.notes, s.calendar_event_id
         FROM sessions s
         LEFT JOIN categories c ON s.category_id = c.id
         WHERE s.session_type IN ('full_focus', 'partial_focus', 'rest')

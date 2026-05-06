@@ -36,5 +36,7 @@ data class SessionWithCategory(
     val startedAt: String,
     @ColumnInfo(name = "ended_at")
     val endedAt: String,
-    val notes: String?
+    val notes: String?,
+    @ColumnInfo(name = "calendar_event_id")
+    val calendarEventId: String?
 )

@@ -55,6 +55,9 @@ data class SessionEntity(
 
     val notes: String? = null,
 
+    @ColumnInfo(name = "calendar_event_id")
+    val calendarEventId: String? = null,
+
     @ColumnInfo(name = "created_at")
     val createdAt: String
 )

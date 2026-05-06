@@ -7,6 +7,7 @@ import org.json.JSONObject
 import java.io.OutputStreamWriter
 import java.net.HttpURLConnection
 import java.net.URL
+import java.net.URLEncoder
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -19,13 +20,7 @@ class GoogleCalendarRepository @Inject constructor(
             "https://www.googleapis.com/calendar/v3/calendars/primary/events"
     }
 
-    /**
-     * Creates a Google Calendar event for a completed session.
-     * Returns true if the event was created successfully.
-     */
-    suspend fun createEvent(session: SessionEntity, categoryName: String?): Boolean {
-        val accessToken = authManager.getValidAccessToken() ?: return false
-
+    private fun buildEventJson(session: SessionEntity, categoryName: String?): JSONObject {
         val summary = if (session.title.isNotEmpty()) {
             "Focus: ${session.title}"
         } else {
@@ -44,8 +39,12 @@ class GoogleCalendarRepository @Inject constructor(
         if (session.pauseSeconds > 0) {
             descriptionParts.add("Paused: ${session.pauseSeconds / 60}m")
         }
+        if (!session.notes.isNullOrBlank()) {
+            descriptionParts.add("")
+            descriptionParts.add("Notes: ${session.notes}")
+        }
 
-        val event = JSONObject().apply {
+        return JSONObject().apply {
             put("summary", summary)
             put("description", descriptionParts.joinToString("\n"))
             put("start", JSONObject().apply {
@@ -57,6 +56,15 @@ class GoogleCalendarRepository @Inject constructor(
                 put("timeZone", java.util.TimeZone.getDefault().id)
             })
         }
+    }
+
+    /**
+     * Creates a Google Calendar event for a completed session.
+     * Returns the event ID if created successfully, null otherwise.
+     */
+    suspend fun createEvent(session: SessionEntity, categoryName: String?): String? {
+        val accessToken = authManager.getValidAccessToken() ?: return null
+        val event = buildEventJson(session, categoryName)
 
         return withContext(Dispatchers.IO) {
             try {
@@ -64,6 +72,48 @@ class GoogleCalendarRepository @Inject constructor(
                 val connection = url.openConnection() as HttpURLConnection
                 connection.apply {
                     requestMethod = "POST"
+                    setRequestProperty("Authorization", "Bearer $accessToken")
+                    setRequestProperty("Content-Type", "application/json")
+                    doOutput = true
+                    connectTimeout = 15_000
+                    readTimeout = 15_000
+                }
+
+                OutputStreamWriter(connection.outputStream).use { writer ->
+                    writer.write(event.toString())
+                    writer.flush()
+                }
+
+                val responseCode = connection.responseCode
+                if (responseCode in 200..299) {
+                    val responseBody = connection.inputStream.bufferedReader().use { it.readText() }
+                    connection.disconnect()
+                    JSONObject(responseBody).optString("id").takeIf { it.isNotBlank() }
+                } else {
+                    connection.disconnect()
+                    null
+                }
+            } catch (_: Exception) {
+                null
+            }
+        }
+    }
+
+    /**
+     * Updates an existing Google Calendar event.
+     * Returns true if updated successfully.
+     */
+    suspend fun updateEvent(eventId: String, session: SessionEntity, categoryName: String?): Boolean {
+        val accessToken = authManager.getValidAccessToken() ?: return false
+        val event = buildEventJson(session, categoryName)
+
+        return withContext(Dispatchers.IO) {
+            try {
+                val encodedEventId = URLEncoder.encode(eventId, Charsets.UTF_8.name())
+                val url = URL("$CALENDAR_API_URL/$encodedEventId")
+                val connection = url.openConnection() as HttpURLConnection
+                connection.apply {
+                    requestMethod = "PUT"
                     setRequestProperty("Authorization", "Bearer $accessToken")
                     setRequestProperty("Content-Type", "application/json")
                     doOutput = true

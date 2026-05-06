@@ -38,7 +38,17 @@ class CalendarSyncWorker @AssistedInject constructor(
             }
         }
 
-        val success = calendarRepository.createEvent(session, categoryName)
-        return if (success) Result.success() else Result.retry()
+        if (!session.calendarEventId.isNullOrBlank()) {
+            val updated = calendarRepository.updateEvent(session.calendarEventId, session, categoryName)
+            return if (updated) Result.success() else Result.retry()
+        }
+
+        val eventId = calendarRepository.createEvent(session, categoryName)
+        return if (eventId != null) {
+            sessionDao.updateSession(session.copy(calendarEventId = eventId))
+            Result.success()
+        } else {
+            Result.retry()
+        }
     }
 }

@@ -28,6 +28,10 @@ class SessionRepository @Inject constructor(
 
     suspend fun saveSession(session: SessionEntity) = sessionDao.insertSession(session)
 
+    suspend fun updateSession(session: SessionEntity) = sessionDao.updateSession(session)
+
+    suspend fun getSessionById(id: String): SessionEntity? = sessionDao.getSessionById(id)
+
     suspend fun savePause(pause: PauseEntity) = sessionDao.insertPause(pause)
 
     suspend fun deleteSession(id: String) = sessionDao.deleteSession(id)
